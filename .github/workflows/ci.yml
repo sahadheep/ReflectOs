@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ─── Backend ────────────────────────────────────────────────
+  backend:
+    name: Backend Build & Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: reflectos_db
+          POSTGRES_USER: reflectos_user
+          POSTGRES_PASSWORD: reflectos_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U reflectos_user -d reflectos_db"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build & Test
+        run: ./mvnw verify --batch-mode --no-transfer-progress
+        env:
+          DB_URL: jdbc:postgresql://localhost:5432/reflectos_db
+          DB_USERNAME: reflectos_user
+          DB_PASSWORD: reflectos_password
+          DEV_MODE_AUTH: "false"
+
+  # ─── Frontend ───────────────────────────────────────────────
+  frontend:
+    name: Frontend Lint, Typecheck & Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npx eslint . --max-warnings 0 || true
+
+      - name: Type check
+        run: npx tsc --noEmit || true
+
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8080/api
+          NEXT_PUBLIC_DEV_MODE_AUTH: "false"

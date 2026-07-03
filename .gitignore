@@ -1,0 +1,37 @@
+# =========================
+# General/IDE
+# =========================
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# =========================
+# Backend (Spring Boot / Maven)
+# =========================
+backend/target/
+backend/*.log
+backend/.mvn/wrapper/maven-wrapper.jar
+backend/logs/
+
+# =========================
+# Frontend (Next.js / Node)
+# =========================
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.vercel/
+frontend/.env
+frontend/.env*.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
+
+# Ignore any root level node_modules or envs just in case
+node_modules/
+.env
+.env.local
