@@ -7,6 +7,7 @@ import {
   CheckCircle2, Circle, Plus, MoreHorizontal, Calendar as CalendarIcon, Tag, Flame
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useMotionConfig, TRANSITION_FAST, TRANSITION } from "@/lib/motion";
 import { toast } from "sonner";
 import { TaskListSkeleton } from "@/components/skeletons";
 import { Badge } from "@/components/ui/badge";
@@ -108,6 +109,7 @@ export default function TasksPage({ params }: { params: Promise<{ filter?: strin
   // --- Filter logic for specific sidebar views (Inbox, Today, Upcoming, etc.) ---
   if (filterParams.length > 0) {
     const viewType = filterParams[0];
+    const { itemVariants } = useMotionConfig();
     const todayDate = format(new Date(), "yyyy-MM-dd");
     let viewTitle = "";
     let filteredTasks: Task[] = [];
@@ -171,9 +173,11 @@ export default function TasksPage({ params }: { params: Promise<{ filter?: strin
               {filteredTasks.map((task) => (
                 <motion.div
                   layout
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
+                  variants={itemVariants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  transition={TRANSITION}
                   key={task.id}
                   className="group flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-bg-surface-raised transition-all duration-200 border border-transparent hover:border-border-subtle hover:shadow-sm hover:-translate-y-px"
                 >
@@ -184,9 +188,21 @@ export default function TasksPage({ params }: { params: Promise<{ filter?: strin
                     {task.completed ? <CheckCircle2 size={18} strokeWidth={2} /> : <Circle size={18} strokeWidth={2} />}
                   </button>
 
-                  <span className={`text-sm font-medium flex-1 truncate ${task.completed ? "text-text-tertiary line-through" : "text-text-primary"}`}>
-                    {task.title}
-                  </span>
+                  <div className="flex-1 relative overflow-hidden truncate">
+                    <motion.span 
+                      animate={{ opacity: task.completed ? 0.5 : 1 }}
+                      transition={TRANSITION_FAST}
+                      className="text-sm font-medium text-text-primary block truncate"
+                    >
+                      {task.title}
+                    </motion.span>
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: task.completed ? "100%" : "0%" }}
+                      transition={TRANSITION_FAST}
+                      className="absolute left-0 top-1/2 h-[1.5px] bg-text-tertiary -translate-y-1/2 origin-left"
+                    />
+                  </div>
 
                   <TaskTimer task={task} onStop={() => toggleTask(task.id, task.completed)} />
 
@@ -316,9 +332,11 @@ export default function TasksPage({ params }: { params: Promise<{ filter?: strin
                     {dayTasks.map((task) => (
                       <motion.div 
                         layout
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
+                        variants={itemVariants}
+                        initial="initial"
+                        animate="animate"
+                        exit="exit"
+                        transition={TRANSITION}
                         key={task.id} 
                         className="bg-bg-surface-raised border border-border-subtle hover:border-border-default p-3 rounded-md shadow-sm space-y-2 group transition-all duration-200 hover:shadow-md hover:-translate-y-px"
                       >
@@ -326,9 +344,21 @@ export default function TasksPage({ params }: { params: Promise<{ filter?: strin
                           <button onClick={() => toggleTask(task.id, task.completed)} className="mt-0.5 shrink-0 text-text-tertiary hover:text-accent transition-all active:scale-90">
                             <Circle size={16} strokeWidth={2} />
                           </button>
-                          <p className="text-sm font-medium text-text-primary leading-tight pt-0.5">
-                            {task.title}
-                          </p>
+                          <div className="flex-1 relative overflow-hidden truncate">
+                            <motion.p 
+                              animate={{ opacity: task.completed ? 0.5 : 1 }}
+                              transition={TRANSITION_FAST}
+                              className="text-sm font-medium text-text-primary leading-tight pt-0.5 block truncate"
+                            >
+                              {task.title}
+                            </motion.p>
+                            <motion.div 
+                              initial={{ width: 0 }}
+                              animate={{ width: task.completed ? "100%" : "0%" }}
+                              transition={TRANSITION_FAST}
+                              className="absolute left-0 top-1/2 h-[1.5px] bg-text-tertiary -translate-y-1/2 origin-left"
+                            />
+                          </div>
                         </div>
                         
                         <div className="flex items-center justify-between mt-2 pt-2 border-t border-border-subtle">

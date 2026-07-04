@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { fetchWithAuth } from "@/lib/api";
-import { motion } from "framer-motion";
+import { motion, animate, useMotionValue, useTransform } from "framer-motion";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { TRANSITION_SLOW, DURATION, EASE } from "@/lib/motion";
 import { LoadingScreen } from "@/components/ui/loading-screen";
 import { ErrorState } from "@/components/ui/error-state";
 import { format, parseISO, subDays } from "date-fns";
@@ -23,6 +24,18 @@ interface AnalyticsSummary {
   topMood: string;
   daysTracked: number;
   dailyStats: DailyStat[];
+}
+
+function Counter({ value, suffix = "" }: { value: number; suffix?: string }) {
+  const count = useMotionValue(0);
+  const rounded = useTransform(count, (latest) => Math.round(latest) + suffix);
+
+  useEffect(() => {
+    const controls = animate(count, value, { duration: DURATION.slow, ease: EASE });
+    return controls.stop;
+  }, [value, count]);
+
+  return <motion.span>{rounded}</motion.span>;
 }
 
 export default function AnalyticsPage() {
@@ -122,6 +135,9 @@ export default function AnalyticsPage() {
                 fillOpacity={1} 
                 fill="url(#colorScore)" 
                 activeDot={{ r: 6, fill: "var(--bg-base)", stroke: "var(--accent)", strokeWidth: 2 }}
+                isAnimationActive={true}
+                animationDuration={DURATION.slow * 1000}
+                animationEasing="ease-out"
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -172,7 +188,9 @@ export default function AnalyticsPage() {
             <div className="bg-bg-surface border border-border-subtle p-5 rounded-xl flex flex-col justify-between">
               <div className="text-text-tertiary mb-4"><CheckSquare size={18} /></div>
               <div>
-                <p className="text-2xl font-semibold text-text-primary">{totalTasks}</p>
+                <p className="text-2xl font-semibold text-text-primary">
+                  <Counter value={totalTasks} />
+                </p>
                 <p className="text-xs text-text-secondary mt-1">Tasks Completed</p>
               </div>
             </div>
@@ -180,7 +198,9 @@ export default function AnalyticsPage() {
             <div className="bg-bg-surface border border-border-subtle p-5 rounded-xl flex flex-col justify-between">
               <div className="text-text-tertiary mb-4"><Target size={18} /></div>
               <div>
-                <p className="text-2xl font-semibold text-text-primary">{avgScore}%</p>
+                <p className="text-2xl font-semibold text-text-primary">
+                  <Counter value={avgScore} suffix="%" />
+                </p>
                 <p className="text-xs text-text-secondary mt-1">Average Focus Score</p>
               </div>
             </div>

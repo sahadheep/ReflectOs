@@ -6,8 +6,9 @@ import { useEffect } from "react";
 import { Sidebar } from "@/components/sidebar";
 import { Topbar } from "@/components/topbar";
 import { CommandPalette } from "@/components/command-palette";
-
 import { TimerDock } from "@/components/timer-dock";
+import { AnimatePresence, motion } from "framer-motion";
+import { TRANSITION } from "@/lib/motion";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, loading, logout, user } = useAuth();
@@ -55,12 +56,37 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   if (loading || !isAuthenticated) {
     return (
-      <div className="flex h-screen items-center justify-center bg-bg-base">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-text-secondary text-sm">Loading workspace...</p>
-        </div>
-      </div>
+      <AnimatePresence mode="wait">
+        {loading && (
+          <motion.div 
+            key="app-loading-skeleton"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={TRANSITION}
+            className="flex h-screen bg-bg-base overflow-hidden"
+          >
+            {/* Skeleton Sidebar */}
+            <div className="w-[240px] border-r border-border-subtle bg-bg-surface-raised flex flex-col p-4 gap-4 hidden md:flex">
+              <div className="h-6 w-32 bg-border-subtle rounded animate-pulse" />
+              <div className="space-y-2 mt-4">
+                <div className="h-8 bg-border-subtle rounded animate-pulse opacity-50" />
+                <div className="h-8 bg-border-subtle rounded animate-pulse opacity-30" />
+                <div className="h-8 bg-border-subtle rounded animate-pulse opacity-20" />
+              </div>
+            </div>
+            <div className="flex-1 flex flex-col">
+              <div className="h-14 border-b border-border-subtle flex items-center px-4">
+                <div className="h-8 w-48 bg-border-subtle rounded animate-pulse" />
+              </div>
+              <div className="p-8 space-y-4">
+                <div className="h-10 w-1/3 bg-border-subtle rounded animate-pulse" />
+                <div className="h-32 bg-border-subtle rounded-xl animate-pulse opacity-50" />
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     );
   }
 
@@ -77,7 +103,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         {/* Scrollable page content */}
         <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
           <div className="flex-1 overflow-y-auto p-4 md:p-8">
-            {children}
+            <AnimatePresence mode="wait">
+              {children}
+            </AnimatePresence>
           </div>
           <TimerDock />
         </main>

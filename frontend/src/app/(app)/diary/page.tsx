@@ -10,6 +10,8 @@ import { ErrorState } from "@/components/ui/error-state";
 import { toast } from "sonner";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { DiarySkeleton } from "@/components/skeletons";
+import { motion, AnimatePresence } from "framer-motion";
+import { TRANSITION_FAST } from "@/lib/motion";
 
 interface DiaryEntry {
   id?: number;
@@ -164,12 +166,18 @@ export default function DiaryPage() {
           
           <div className="flex items-center gap-4">
             {isTodaySelected && !isLocked && (
-              <div className="flex items-center gap-2 text-xs font-medium text-text-tertiary">
-                {saving ? (
-                  <><Loader2 size={12} className="animate-spin" /> Saving...</>
-                ) : (
-                  <><CheckCircle2 size={12} /> Saved</>
-                )}
+              <div className="flex items-center text-xs font-medium text-text-tertiary">
+                <AnimatePresence mode="wait">
+                  {saving ? (
+                    <motion.div key="saving" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={TRANSITION_FAST} className="flex items-center gap-2">
+                      <Loader2 size={12} className="animate-spin" /> Saving...
+                    </motion.div>
+                  ) : (
+                    <motion.div key="saved" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={TRANSITION_FAST} className="flex items-center gap-2">
+                      <CheckCircle2 size={12} /> Saved
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             )}
             
@@ -178,7 +186,7 @@ export default function DiaryPage() {
                 <Lock size={12} /> Read-only
               </div>
             ) : (
-              <Button size="sm" onClick={handleLock} className="h-8 text-xs px-3">
+              <Button size="sm" onClick={handleLock} className="h-8 text-xs px-3 transition-all active:scale-95">
                 <Lock size={12} className="mr-1.5" /> Lock Entry
               </Button>
             )}
@@ -186,19 +194,28 @@ export default function DiaryPage() {
         </div>
 
         {/* Editor Body */}
-        <div className="flex-1 overflow-y-auto p-8 lg:p-12">
-          <div className="max-w-2xl mx-auto h-full flex flex-col">
-            <textarea
-              value={content}
-              onChange={(e) => saveDraft(e.target.value)}
-              disabled={isLocked}
-              placeholder={isLocked ? "" : "Start writing your reflection..."}
-              className={`flex-1 w-full bg-transparent resize-none outline-none font-serif text-lg leading-relaxed ${
-                isLocked ? "text-text-secondary cursor-default" : "text-text-primary"
-              } placeholder:text-text-tertiary`}
-            />
-          </div>
-        </div>
+        <AnimatePresence mode="wait">
+          <motion.div 
+            key={selectedDate}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={TRANSITION_FAST}
+            className="flex-1 overflow-y-auto p-8 lg:p-12"
+          >
+            <div className="max-w-2xl mx-auto h-full flex flex-col">
+              <textarea
+                value={content}
+                onChange={(e) => saveDraft(e.target.value)}
+                disabled={isLocked}
+                placeholder={isLocked ? "" : "Start writing your reflection..."}
+                className={`flex-1 w-full bg-transparent resize-none outline-none font-serif text-lg leading-relaxed ${
+                  isLocked ? "text-text-secondary cursor-default" : "text-text-primary"
+                } placeholder:text-text-tertiary`}
+              />
+            </div>
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );

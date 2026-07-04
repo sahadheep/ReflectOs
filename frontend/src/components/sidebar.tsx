@@ -21,7 +21,8 @@ import {
   BarChart3,
   Settings
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { TRANSITION, TRANSITION_FAST, TRANSITION_SLOW } from "@/lib/motion";
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -57,10 +58,11 @@ export function Sidebar() {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside
-        className={`hidden md:flex flex-col bg-bg-base border-r border-border-subtle transition-all duration-300 ease-in-out shrink-0 z-30 ${
-          isCollapsed ? "w-[64px]" : "w-[240px]"
-        }`}
+      <motion.aside
+        initial={false}
+        animate={{ width: isCollapsed ? 80 : 260 }}
+        transition={TRANSITION}
+        className={`hidden md:flex flex-col bg-bg-surface border-r border-border-default h-screen transition-colors z-20 overflow-hidden`}
       >
         {/* Header / Search Placeholder */}
         <div className="h-16 flex items-center px-4 shrink-0 border-b border-border-subtle">
@@ -93,26 +95,34 @@ export function Sidebar() {
               >
                 {isActive && (
                   <motion.div
-                    layoutId="activeNavBorder"
-                    className="absolute left-0 top-1 bottom-1 w-[2px] bg-accent rounded-r-full"
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    layoutId="activeNavBg"
+                    className="absolute inset-x-2 top-0 bottom-0 bg-bg-surface-raised rounded-md shadow-sm"
+                    transition={TRANSITION}
                   />
                 )}
                 
                 <div
-                  className={`flex items-center gap-3 px-2 py-1.5 mx-2 rounded-md transition-all duration-150 active:scale-[0.98] ${
+                  className={`relative flex items-center gap-3 px-2 py-1.5 mx-2 rounded-md transition-all duration-150 active:scale-[0.98] ${
                     isActive 
-                      ? "bg-bg-surface-raised text-text-primary" 
+                      ? "text-text-primary" 
                       : "text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover"
                   } focus-visible:shadow-focus`}
                   title={isCollapsed ? item.name : undefined}
                 >
                   <Icon size={18} className={`shrink-0 ${item.color}`} strokeWidth={isActive ? 2.5 : 2} />
-                  {!isCollapsed && (
-                    <span className="text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis flex-1">
-                      {item.name}
-                    </span>
-                  )}
+                  <AnimatePresence mode="wait">
+                    {!isCollapsed && (
+                      <motion.span 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={TRANSITION_FAST}
+                        className="text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis flex-1"
+                      >
+                        {item.name}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
                 </div>
               </Link>
             );
@@ -131,25 +141,33 @@ export function Sidebar() {
               <Link key={category} href={href} className="relative group outline-none">
                 {isActive && (
                   <motion.div
-                    layoutId="activeNavBorder"
-                    className="absolute left-0 top-1 bottom-1 w-[2px] bg-accent rounded-r-full"
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    layoutId="activeNavBg"
+                    className="absolute inset-x-2 top-0 bottom-0 bg-bg-surface-raised rounded-md shadow-sm"
+                    transition={TRANSITION}
                   />
                 )}
                 <div
-                  className={`flex items-center gap-3 px-2 py-1.5 mx-2 rounded-md transition-all duration-150 active:scale-[0.98] ${
+                  className={`relative flex items-center gap-3 px-2 py-1.5 mx-2 rounded-md transition-all duration-150 active:scale-[0.98] ${
                     isActive 
-                      ? "bg-bg-surface-raised text-text-primary shadow-sm" 
-                      : "text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover hover:-translate-y-px"
+                      ? "text-text-primary" 
+                      : "text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover"
                   } focus-visible:shadow-focus`}
                   title={isCollapsed ? category : undefined}
                 >
                   <FolderOpen size={16} className="shrink-0 text-text-tertiary" />
-                  {!isCollapsed && (
-                    <span className="text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis">
-                      {category}
-                    </span>
-                  )}
+                  <AnimatePresence mode="wait">
+                    {!isCollapsed && (
+                      <motion.span 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={TRANSITION_FAST}
+                        className="text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis flex-1"
+                      >
+                        {category}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
                 </div>
               </Link>
             );
@@ -172,25 +190,33 @@ export function Sidebar() {
               <Link key={item.name} href={item.href} className="relative group outline-none">
                 {isActive && (
                   <motion.div
-                    layoutId="activeNavBorder"
-                    className="absolute left-0 top-1 bottom-1 w-[2px] bg-accent rounded-r-full"
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    layoutId="activeNavBg"
+                    className="absolute inset-x-2 top-0 bottom-0 bg-bg-surface-raised rounded-md shadow-sm"
+                    transition={TRANSITION}
                   />
                 )}
                 <div
-                  className={`flex items-center gap-3 px-2 py-1.5 mx-2 rounded-md transition-all duration-150 active:scale-[0.98] ${
+                  className={`relative flex items-center gap-3 px-2 py-1.5 mx-2 rounded-md transition-all duration-150 active:scale-[0.98] ${
                     isActive 
-                      ? "bg-bg-surface-raised text-text-primary" 
+                      ? "text-text-primary" 
                       : "text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover"
                   } focus-visible:shadow-focus`}
                   title={isCollapsed ? item.name : undefined}
                 >
                   <Icon size={18} className={`shrink-0 ${item.color}`} strokeWidth={isActive ? 2.5 : 2} />
-                  {!isCollapsed && (
-                    <span className="text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis flex-1">
-                      {item.name}
-                    </span>
-                  )}
+                  <AnimatePresence mode="wait">
+                    {!isCollapsed && (
+                      <motion.span 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={TRANSITION_FAST}
+                        className="text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis flex-1"
+                      >
+                        {item.name}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
                 </div>
               </Link>
             );
@@ -207,7 +233,7 @@ export function Sidebar() {
             {isCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
           </button>
         </div>
-      </aside>
+      </motion.aside>
 
       {/* Mobile Bottom Tab Bar */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-bg-surface border-t border-border-subtle flex items-center justify-around px-2 pb-safe z-40 shadow-[0_-4px_24px_rgba(0,0,0,0.4)]">

@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { User, Monitor, Bell, LogOut, Check } from "lucide-react";
+import { motion } from "framer-motion";
+import { TRANSITION } from "@/lib/motion";
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
@@ -85,18 +87,26 @@ export default function SettingsPage() {
           <div className="space-y-4">
             <div>
               <label className="text-xs font-medium text-text-secondary mb-2 block">Theme Preference</label>
-              <div className="flex gap-3">
+              <div className="flex bg-bg-surface-raised border border-border-subtle rounded-lg p-1 w-fit">
                 {["light", "dark", "system"].map((t) => (
                   <button
                     key={t}
                     onClick={() => setTheme(t)}
-                    className={`px-4 py-2 text-sm font-medium rounded-md border capitalize transition-colors ${
+                    className={`relative px-4 py-1.5 text-sm font-medium rounded-md capitalize transition-colors ${
                       theme === t 
-                        ? "bg-accent/10 border-accent text-accent" 
-                        : "bg-bg-surface border-border-subtle text-text-secondary hover:text-text-primary hover:border-border-default"
+                        ? "text-text-primary" 
+                        : "text-text-secondary hover:text-text-primary"
                     }`}
                   >
-                    {t}
+                    {theme === t && (
+                      <motion.div
+                        layoutId="theme-active"
+                        className="absolute inset-0 bg-bg-base border border-border-default rounded-md shadow-sm"
+                        transition={TRANSITION}
+                        style={{ zIndex: -1 }}
+                      />
+                    )}
+                    <span className="relative z-10">{t}</span>
                   </button>
                 ))}
               </div>
