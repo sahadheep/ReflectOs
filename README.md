@@ -1,6 +1,26 @@
 # ReflectOS
 
+[![Build Status](https://img.shields.io/github/actions/workflow/status/sahadheep/ReflectOs/main.yml?branch=main)](https://github.com/sahadheep/ReflectOs/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Java 21](https://img.shields.io/badge/Java-21-red.svg)](https://adoptium.net/)
+[![Next.js 16](https://img.shields.io/badge/Next.js-16-black.svg)](https://nextjs.org/)
+
 A premium personal productivity web application for students and professionals — plan your day, track tasks, reinforce goals, and reflect on growth.
+
+![ReflectOS Screenshot](docs/screenshot.png)
+
+## Why this exists
+
+Modern productivity tools often force you to choose between rigid task management (Jira, Todoist) and unstructured journaling (Notion, Apple Notes). ReflectOS brings them together. It solves the context-switching problem by putting your daily execution (timers, tasks, focus tracking) in the exact same interface as your daily reflection (journaling, mood tracking), creating a loop where your daily work directly informs your personal growth.
+
+## Design Decisions
+
+- **Server-Authoritative Timers:** Timer state is tracked on the backend to survive page refreshes, prevent cheating, and stay consistent across multiple tabs or devices.
+- **Micro-Interactions over Heavy Animation:** The frontend uses Framer Motion exclusively for subtle transitions (opacity cross-fades, layout slides) with strict exponential easing. Zero spring physics keeps the UI feeling professional and deliberate.
+- **Robust Authentication:** Uses HTTP-only cookies for refresh tokens and short-lived JWTs for access, preventing XSS token theft while maintaining smooth user sessions.
+- **Database Migrations:** Flyway manages all PostgreSQL schema changes instead of relying on Hibernate auto-update, ensuring deterministic and safe production deployments.
+
+---
 
 ## Architecture
 
@@ -137,4 +157,4 @@ For local development, set `DEV_MODE_AUTH=true` (backend) and `NEXT_PUBLIC_DEV_M
 
 ## License
 
-Private — All rights reserved.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
