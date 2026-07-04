@@ -31,7 +31,11 @@ function Counter({ value, suffix = "" }: { value: number; suffix?: string }) {
   const rounded = useTransform(count, (latest) => Math.round(latest) + suffix);
 
   useEffect(() => {
-    const controls = animate(count, value, { duration: DURATION.slow, ease: EASE });
+    const controls = animate(0, value, { 
+      duration: DURATION.slow, 
+      ease: EASE,
+      onUpdate: (latest) => count.set(latest)
+    });
     return controls.stop;
   }, [value, count]);
 

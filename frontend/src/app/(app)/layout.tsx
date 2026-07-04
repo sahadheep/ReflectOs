@@ -103,9 +103,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         {/* Scrollable page content */}
         <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
           <div className="flex-1 overflow-y-auto p-4 md:p-8">
-            <AnimatePresence mode="wait">
-              {children}
-            </AnimatePresence>
+            {children}
           </div>
           <TimerDock />
         </main>

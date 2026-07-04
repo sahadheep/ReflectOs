@@ -29,6 +29,8 @@ export default function TasksPage({ params }: { params: Promise<{ filter?: strin
   const unwrappedParams = use(params);
   const filterParams = unwrappedParams.filter || [];
   
+  const { itemVariants } = useMotionConfig();
+  
   const [newTaskCol, setNewTaskCol] = useState<string | null>(null);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const queryClient = useQueryClient();
@@ -109,7 +111,6 @@ export default function TasksPage({ params }: { params: Promise<{ filter?: strin
   // --- Filter logic for specific sidebar views (Inbox, Today, Upcoming, etc.) ---
   if (filterParams.length > 0) {
     const viewType = filterParams[0];
-    const { itemVariants } = useMotionConfig();
     const todayDate = format(new Date(), "yyyy-MM-dd");
     let viewTitle = "";
     let filteredTasks: Task[] = [];

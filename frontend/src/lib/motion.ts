@@ -1,3 +1,5 @@
+"use client";
+
 import { useReducedMotion } from "framer-motion";
 
 // ease-out-expo, calm not bouncy
