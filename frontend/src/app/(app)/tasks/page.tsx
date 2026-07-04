@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { fetchWithAuth } from "@/lib/api";
 import { format, isToday as isDateToday, isPast, isFuture, parseISO } from "date-fns";
 import { 
@@ -8,9 +8,10 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { LoadingScreen } from "@/components/ui/loading-screen";
+import { TaskListSkeleton } from "@/components/skeletons";
 import { Badge } from "@/components/ui/badge";
 import { TaskTimer } from "@/components/ui/task-timer";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface Task {
   id: number;
@@ -24,44 +25,48 @@ interface Task {
 }
 
 export default function TasksPage() {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
   const [view, setView] = useState<"list" | "board">("list");
   const [newTaskGroup, setNewTaskGroup] = useState<string | null>(null);
   const [newTaskTitle, setNewTaskTitle] = useState("");
+  const queryClient = useQueryClient();
 
-  const loadData = async () => {
-    try {
-      const res = await fetchWithAuth("/tasks"); // Assumes this endpoint returns all tasks, or at least active ones
-      if (res.ok) {
-        const data = await res.json();
-        setTasks(data);
-      } else {
-        toast.error("Failed to load tasks");
-      }
-    } catch {
-      toast.error("Failed to load tasks");
-    } finally {
-      setLoading(false);
+  const { data: tasks = [], isLoading: loading } = useQuery<Task[]>({
+    queryKey: ["tasks"],
+    queryFn: async () => {
+      const res = await fetchWithAuth("/tasks");
+      if (!res.ok) throw new Error("Failed to load tasks");
+      return res.json();
     }
-  };
+  });
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const toggleTask = async (id: number, completed: boolean) => {
-    setTasks(prev => prev.map(t => t.id === id ? { ...t, completed: !completed } : t));
-    try {
+  const toggleMutation = useMutation({
+    mutationFn: async ({ id, completed }: { id: number, completed: boolean }) => {
       const res = await fetchWithAuth(`/tasks/${id}`, {
         method: "PATCH",
-        body: JSON.stringify({ completed: !completed }),
+        body: JSON.stringify({ completed }),
       });
       if (!res.ok) throw new Error();
-    } catch {
-      setTasks(prev => prev.map(t => t.id === id ? { ...t, completed } : t));
+      return res.json();
+    },
+    onMutate: async ({ id, completed }) => {
+      await queryClient.cancelQueries({ queryKey: ["tasks"] });
+      const previousTasks = queryClient.getQueryData<Task[]>(["tasks"]);
+      queryClient.setQueryData<Task[]>(["tasks"], old => 
+        old?.map(t => t.id === id ? { ...t, completed } : t)
+      );
+      return { previousTasks };
+    },
+    onError: (err, newTodo, context) => {
+      queryClient.setQueryData(["tasks"], context?.previousTasks);
       toast.error("Failed to update task");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
     }
+  });
+
+  const toggleTask = (id: number, currentCompleted: boolean) => {
+    toggleMutation.mutate({ id, completed: !currentCompleted });
   };
 
   const handleAddTask = async (e: React.FormEvent, group: string) => {
@@ -95,7 +100,7 @@ export default function TasksPage() {
       if (res.ok) {
         setNewTaskTitle("");
         setNewTaskGroup(null);
-        loadData();
+        queryClient.invalidateQueries({ queryKey: ["tasks"] });
         toast.success("Task added");
       } else {
         toast.error("Failed to create task");
@@ -116,7 +121,11 @@ export default function TasksPage() {
     "Completed": tasks.filter(t => t.completed)
   };
 
-  if (loading) return <LoadingScreen message="" />;
+  if (loading) return (
+    <div className="max-w-4xl mx-auto p-4 md:p-8">
+      <TaskListSkeleton />
+    </div>
+  );
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both">

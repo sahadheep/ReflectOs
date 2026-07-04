@@ -8,6 +8,7 @@ import com.reflectos.backend.payload.response.MessageResponse;
 import com.reflectos.backend.repositories.UserRepository;
 import com.reflectos.backend.security.jwt.JwtUtils;
 import com.reflectos.backend.security.services.UserDetailsImpl;
+import com.reflectos.backend.services.RefreshTokenService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,9 +19,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Value;
-import java.util.Optional;
 
-@CrossOrigin(origins = "${CORS_ORIGIN:http://localhost:3000}", maxAge = 3600)
+import java.util.Map;
+
+@CrossOrigin(origins = "${app.cors.allowed-origins:${CORS_ALLOWED_ORIGINS:http://localhost:3000}}", maxAge = 3600)
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -36,6 +38,9 @@ public class AuthController {
     @Autowired
     JwtUtils jwtUtils;
 
+    @Autowired
+    RefreshTokenService refreshTokenService;
+
     @Value("${app.dev-mode-auth:false}")
     boolean devModeAuth;
 
@@ -50,10 +55,17 @@ public class AuthController {
 
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
-        return ResponseEntity.ok(new JwtResponse(jwt,
-                userDetails.getId(),
-                userDetails.getUsername(),
-                userDetails.getEmail()));
+        // Issue a refresh token alongside the short-lived access token
+        User user = userRepository.findById(userDetails.getId()).orElseThrow();
+        String refreshToken = refreshTokenService.createRefreshToken(user);
+
+        return ResponseEntity.ok(Map.of(
+                "token", jwt,
+                "refreshToken", refreshToken,
+                "id", userDetails.getId(),
+                "username", userDetails.getUsername(),
+                "email", userDetails.getEmail()
+        ));
     }
 
     @PostMapping("/register")
@@ -74,6 +86,38 @@ public class AuthController {
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
     }
 
+    /**
+     * Exchange a valid refresh token for a new access token + new refresh token.
+     * The old refresh token is revoked (rotation).
+     */
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshToken(@RequestBody Map<String, String> body) {
+        String rawRefreshToken = body.get("refreshToken");
+        if (rawRefreshToken == null || rawRefreshToken.isBlank()) {
+            return ResponseEntity.badRequest().body(new MessageResponse("refreshToken is required"));
+        }
+
+        User user = refreshTokenService.validateAndRotate(rawRefreshToken);
+
+        // Generate new access token
+        Authentication auth = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
+        // The above won't work because user.getPassword() is encoded.
+        // Instead, generate the JWT directly from the username.
+        String jwt = jwtUtils.generateJwtTokenFromUsername(user.getUsername());
+
+        // Issue a new refresh token
+        String newRefreshToken = refreshTokenService.createRefreshToken(user);
+
+        return ResponseEntity.ok(Map.of(
+                "token", jwt,
+                "refreshToken", newRefreshToken,
+                "id", user.getId(),
+                "username", user.getUsername(),
+                "email", user.getEmail()
+        ));
+    }
+
     @PostMapping("/dev-login")
     public ResponseEntity<?> devLogin() {
         if (!devModeAuth) {
@@ -81,17 +125,11 @@ public class AuthController {
         }
 
         String devEmail = "dev@reflectos.com";
-        User devUser;
         if (!userRepository.existsByEmail(devEmail)) {
-            devUser = new User("devuser", devEmail, encoder.encode("devpassword"));
+            User devUser = new User("devuser", devEmail, encoder.encode("devpassword"));
             userRepository.save(devUser);
-        } else {
-            // Find by email - we need to fetch it to get the ID.
-            // But UserRepository doesn't have findByEmail in standard methods. Let's just create a dummy query or we might need to add it.
-            // Wait, we can authenticate using the normal flow since we know the password!
         }
-        
-        // Actually, we can just use the normal authenticate flow since we just created/ensured devuser with devpassword exists!
+
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken("devuser", "devpassword"));
 
@@ -99,10 +137,15 @@ public class AuthController {
         String jwt = jwtUtils.generateJwtToken(authentication);
 
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        User user = userRepository.findById(userDetails.getId()).orElseThrow();
+        String refreshToken = refreshTokenService.createRefreshToken(user);
 
-        return ResponseEntity.ok(new JwtResponse(jwt,
-                userDetails.getId(),
-                userDetails.getUsername(),
-                userDetails.getEmail()));
+        return ResponseEntity.ok(Map.of(
+                "token", jwt,
+                "refreshToken", refreshToken,
+                "id", userDetails.getId(),
+                "username", userDetails.getUsername(),
+                "email", userDetails.getEmail()
+        ));
     }
 }

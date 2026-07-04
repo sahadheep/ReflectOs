@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import jakarta.validation.Valid;
 
 @CrossOrigin(origins = "${CORS_ORIGIN:http://localhost:3000}", maxAge = 3600)
 @RestController
@@ -61,11 +62,16 @@ public class DiaryController {
         return ResponseEntity.ok(diaryService.saveDraft(user, date, request));
     }
 
-    @PostMapping("/submit")
-    public ResponseEntity<DiaryEntry> submitDiary(
-            @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-            @RequestBody DiaryRequest request) {
+    @PostMapping("/{date}/submit")
+    public ResponseEntity<DiaryEntry> submitDiary(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+                                                  @Valid @RequestBody DiaryRequest request) {
         User user = diaryService.getCurrentUser();
         return ResponseEntity.ok(diaryService.submitDiary(user, date, request));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<DiaryEntry>> searchDiary(@RequestParam String q) {
+        User user = diaryService.getCurrentUser();
+        return ResponseEntity.ok(diaryService.search(user, q));
     }
 }

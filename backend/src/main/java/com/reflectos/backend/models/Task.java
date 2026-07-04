@@ -40,6 +40,10 @@ public class Task {
     @Column(name = "is_top_priority", columnDefinition = "boolean default false")
     private Boolean isTopPriority = false;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "template_id")
+    private TaskTemplate template;
+
     public Task() {
     }
 
@@ -145,5 +149,13 @@ public class Task {
 
     public void setTopPriority(Boolean topPriority) {
         isTopPriority = topPriority;
+    }
+
+    public TaskTemplate getTemplate() {
+        return template;
+    }
+
+    public void setTemplate(TaskTemplate template) {
+        this.template = template;
     }
 }

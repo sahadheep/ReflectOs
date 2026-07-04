@@ -97,4 +97,14 @@ public class DiaryService {
 
         return diaryEntryRepository.save(entry);
     }
+
+    /**
+     * Performs a full-text search on the user's diary entries.
+     */
+    public List<DiaryEntry> search(User user, String query) {
+        if (query == null || query.isBlank()) {
+            return List.of();
+        }
+        return diaryEntryRepository.searchByQuery(user.getId(), query);
+    }
 }

@@ -30,8 +30,8 @@ public class WebSecurityConfig {
     @Autowired
     org.springframework.security.core.userdetails.UserDetailsService userDetailsService;
 
-    @Value("${app.cors.origin:http://localhost:3000}")
-    private String corsOrigin;
+    @Value("${app.cors.allowed-origins:${CORS_ALLOWED_ORIGINS:http://localhost:3000}}")
+    private String corsAllowedOrigins;
 
     @Autowired
     private AuthEntryPointJwt unauthorizedHandler;
@@ -62,7 +62,7 @@ public class WebSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(corsOrigin));
+        configuration.setAllowedOrigins(Arrays.asList(corsAllowedOrigins.split(",")));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "x-auth-token"));
         configuration.setExposedHeaders(Arrays.asList("x-auth-token"));
@@ -79,7 +79,8 @@ public class WebSecurityConfig {
             .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> 
-                auth.requestMatchers("/api/auth/**", "/actuator/**").permitAll()
+                auth.requestMatchers("/api/auth/**", "/actuator/**",
+                         "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                     .anyRequest().authenticated()
             );
 

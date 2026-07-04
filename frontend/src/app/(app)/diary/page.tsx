@@ -8,7 +8,8 @@ import { Lock, Unlock, Loader2, Edit3, CheckCircle2 } from "lucide-react";
 import { LoadingScreen } from "@/components/ui/loading-screen";
 import { ErrorState } from "@/components/ui/error-state";
 import { toast } from "sonner";
-import { motion, AnimatePresence } from "framer-motion";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { DiarySkeleton } from "@/components/skeletons";
 
 interface DiaryEntry {
   id?: number;
@@ -16,68 +17,47 @@ interface DiaryEntry {
   mood?: string;
   contentDraft?: string;
   contentSubmitted?: string;
-  text?: string; // some endpoints return 'text' instead of content
+  text?: string;
   locked: boolean;
 }
 
 export default function DiaryPage() {
-  const [history, setHistory] = useState<DiaryEntry[]>([]);
-  const [selectedDate, setSelectedDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
-  const [currentEntry, setCurrentEntry] = useState<DiaryEntry | null>(null);
-  const [content, setContent] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  
   const todayStr = format(new Date(), "yyyy-MM-dd");
+  const [selectedDate, setSelectedDate] = useState<string>(todayStr);
+  const [content, setContent] = useState("");
+  const [saving, setSaving] = useState(false);
+  const queryClient = useQueryClient();
 
-  const loadData = useCallback(async () => {
-    try {
-      // Fetch history for sidebar
-      const historyRes = await fetchWithAuth("/diary/history");
-      let historyData: DiaryEntry[] = [];
-      if (historyRes.ok) {
-        historyData = await historyRes.json();
-        // Sort descending by date
-        historyData.sort((a, b) => b.date.localeCompare(a.date));
+  const { data: history = [], isLoading: historyLoading } = useQuery<DiaryEntry[]>({
+    queryKey: ["diaryHistory"],
+    queryFn: async () => {
+      const res = await fetchWithAuth("/diary/history");
+      if (!res.ok) throw new Error("Failed to load history");
+      const data: DiaryEntry[] = await res.json();
+      data.sort((a, b) => b.date.localeCompare(a.date));
+      if (!data.find(e => e.date === todayStr)) {
+        data.unshift({ date: todayStr, locked: false, contentDraft: "" });
       }
-
-      // Ensure today's entry exists in the sidebar at the top if it doesn't already
-      if (!historyData.find(e => e.date === todayStr)) {
-        historyData.unshift({ date: todayStr, locked: false, contentDraft: "" });
-      }
-      setHistory(historyData);
-      
-      // Load initially selected date (today)
-      loadEntryForDate(todayStr);
-    } catch {
-      toast.error("Failed to load diary");
-    } finally {
-      setLoading(false);
+      return data;
     }
-  }, [todayStr]);
+  });
+
+  const { data: currentEntry, isLoading: entryLoading } = useQuery<DiaryEntry>({
+    queryKey: ["diaryEntry", selectedDate],
+    queryFn: async () => {
+      const res = await fetchWithAuth(`/diary/daily?date=${selectedDate}`);
+      if (res.ok) {
+        return res.json();
+      }
+      return { date: selectedDate, locked: false };
+    }
+  });
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
-
-  const loadEntryForDate = async (dateStr: string) => {
-    setSelectedDate(dateStr);
-    try {
-      // The API endpoint might just be `/diary/daily?date=`
-      const res = await fetchWithAuth(`/diary/daily?date=${dateStr}`);
-      if (res.ok) {
-        const data = await res.json();
-        setCurrentEntry(data);
-        setContent(data.contentDraft || data.text || data.contentSubmitted || "");
-      } else {
-        // Not found, assume empty
-        setCurrentEntry({ date: dateStr, locked: false });
-        setContent("");
-      }
-    } catch {
-      toast.error("Failed to load entry");
+    if (currentEntry) {
+      setContent(currentEntry.contentDraft || currentEntry.text || currentEntry.contentSubmitted || "");
     }
-  };
+  }, [currentEntry]);
 
   const saveDraft = async (newContent: string) => {
     if (currentEntry?.locked || selectedDate !== todayStr) return;
@@ -115,7 +95,8 @@ export default function DiaryPage() {
       
       if (res.ok) {
         toast.success("Entry locked");
-        loadData(); // Reload to reflect locked status
+        queryClient.invalidateQueries({ queryKey: ["diaryHistory"] });
+        queryClient.invalidateQueries({ queryKey: ["diaryEntry", todayStr] });
       } else {
         toast.error("Failed to lock entry");
       }
@@ -124,7 +105,11 @@ export default function DiaryPage() {
     }
   };
 
-  if (loading) return <LoadingScreen message="" />;
+  if (historyLoading) return (
+    <div className="h-full p-4 md:p-8">
+      <DiarySkeleton />
+    </div>
+  );
 
   const isTodaySelected = selectedDate === todayStr;
   const isLocked = currentEntry?.locked || (!isTodaySelected && selectedDate !== todayStr);
@@ -145,7 +130,7 @@ export default function DiaryPage() {
             return (
               <button
                 key={entry.date}
-                onClick={() => loadEntryForDate(entry.date)}
+                onClick={() => setSelectedDate(entry.date)}
                 className={`w-full text-left p-3 rounded-md transition-colors ${
                   isSelected ? "bg-bg-surface-hover shadow-sm" : "hover:bg-bg-surface-hover/50 text-text-secondary"
                 }`}

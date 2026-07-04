@@ -1,21 +1,23 @@
 package com.reflectos.backend.exceptions;
 
-import com.reflectos.backend.payload.response.MessageResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.net.URI;
 import java.util.stream.Collectors;
 
 /**
  * Global exception handler for the entire API surface.
  *
- * Converts domain exceptions into consistent, structured JSON responses
- * so the frontend always receives a predictable error shape.
+ * All error responses conform to RFC 7807 (Problem Details for HTTP APIs).
+ * Every response has a consistent shape: type, title, status, detail, instance.
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -23,21 +25,43 @@ public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<MessageResponse> handleNotFound(ResourceNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(new MessageResponse(ex.getMessage()));
+    public ProblemDetail handleNotFound(ResourceNotFoundException ex, WebRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problem.setTitle("Resource Not Found");
+        problem.setType(URI.create("https://reflectos.dev/errors/not-found"));
+        problem.setInstance(URI.create(request.getDescription(false).replace("uri=", "")));
+        return problem;
     }
 
     @ExceptionHandler(UnauthorizedAccessException.class)
-    public ResponseEntity<MessageResponse> handleUnauthorized(UnauthorizedAccessException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(new MessageResponse(ex.getMessage()));
+    public ProblemDetail handleUnauthorized(UnauthorizedAccessException ex, WebRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
+        problem.setTitle("Access Denied");
+        problem.setType(URI.create("https://reflectos.dev/errors/forbidden"));
+        problem.setInstance(URI.create(request.getDescription(false).replace("uri=", "")));
+        return problem;
     }
 
     @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<MessageResponse> handleIllegalState(IllegalStateException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new MessageResponse(ex.getMessage()));
+    public ProblemDetail handleIllegalState(IllegalStateException ex, WebRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problem.setTitle("Invalid State");
+        problem.setType(URI.create("https://reflectos.dev/errors/bad-request"));
+        problem.setInstance(URI.create(request.getDescription(false).replace("uri=", "")));
+        return problem;
+    }
+
+    /**
+     * Handles ResponseStatusException (e.g. 409 CONFLICT from TimerService state machine).
+     */
+    @ExceptionHandler(ResponseStatusException.class)
+    public ProblemDetail handleResponseStatus(ResponseStatusException ex, WebRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.valueOf(ex.getStatusCode().value()), ex.getReason());
+        problem.setTitle(HttpStatus.valueOf(ex.getStatusCode().value()).getReasonPhrase());
+        problem.setType(URI.create("https://reflectos.dev/errors/response-status"));
+        problem.setInstance(URI.create(request.getDescription(false).replace("uri=", "")));
+        return problem;
     }
 
     /**
@@ -45,21 +69,28 @@ public class GlobalExceptionHandler {
      * Returns a comma-separated list of field-level errors.
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<MessageResponse> handleValidation(MethodArgumentNotValidException ex) {
+    public ProblemDetail handleValidation(MethodArgumentNotValidException ex, WebRequest request) {
         String errors = ex.getBindingResult().getFieldErrors().stream()
                 .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
                 .collect(Collectors.joining(", "));
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new MessageResponse("Validation failed: " + errors));
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Validation failed: " + errors);
+        problem.setTitle("Validation Error");
+        problem.setType(URI.create("https://reflectos.dev/errors/validation"));
+        problem.setInstance(URI.create(request.getDescription(false).replace("uri=", "")));
+        return problem;
     }
 
     /**
      * Catch-all for any unhandled exception.
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<MessageResponse> handleGeneric(Exception ex) {
+    public ProblemDetail handleGeneric(Exception ex, WebRequest request) {
         log.error("Unhandled exception", ex);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new MessageResponse("An unexpected error occurred. Please try again later."));
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred. Please try again later.");
+        problem.setTitle("Internal Server Error");
+        problem.setType(URI.create("https://reflectos.dev/errors/internal"));
+        problem.setInstance(URI.create(request.getDescription(false).replace("uri=", "")));
+        return problem;
     }
 }

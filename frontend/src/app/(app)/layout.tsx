@@ -7,6 +7,8 @@ import { Sidebar } from "@/components/sidebar";
 import { Topbar } from "@/components/topbar";
 import { CommandPalette } from "@/components/command-palette";
 
+import { TimerDock } from "@/components/timer-dock";
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, loading, logout, user } = useAuth();
   const router = useRouter();
@@ -73,10 +75,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <Topbar user={user} onLogout={logout} />
         
         {/* Scrollable page content */}
-        <main className="flex-1 overflow-y-auto relative z-0">
-          <div className="max-w-[1100px] mx-auto w-full p-6 md:p-8">
+        <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
+          <div className="flex-1 overflow-y-auto p-4 md:p-8">
             {children}
           </div>
+          <TimerDock />
         </main>
       </div>
 

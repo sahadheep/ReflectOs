@@ -38,6 +38,10 @@ export const metadata: Metadata = {
   },
 };
 
+import { ReactQueryProvider } from "@/components/ReactQueryProvider";
+
+import { TimerProvider } from "@/context/TimerContext";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -54,10 +58,14 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AuthProvider>
-            {children}
-            <Toaster />
-          </AuthProvider>
+          <ReactQueryProvider>
+            <AuthProvider>
+              <TimerProvider>
+                {children}
+                <Toaster />
+              </TimerProvider>
+            </AuthProvider>
+          </ReactQueryProvider>
         </ThemeProvider>
       </body>
     </html>
