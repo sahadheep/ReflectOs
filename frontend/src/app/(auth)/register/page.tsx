@@ -46,7 +46,7 @@ export default function RegisterPage() {
       
       if (!res.ok) {
         // If the backend returns a structured error or just a message
-        throw new Error(data.message || "Registration failed");
+        throw new Error(data.message || data.detail || "Registration failed");
       }
 
       // Automatically log in using the newly created credentials
@@ -92,10 +92,11 @@ export default function RegisterPage() {
                 <input
                   id="username"
                   type="text"
-                  placeholder="Username"
+                  placeholder="Username (min 3 characters)"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required
+                  minLength={3}
                   className="w-full bg-transparent border-0 border-b border-border-default px-0 py-3 text-text-primary placeholder:text-text-tertiary focus:ring-0 focus:border-accent transition-colors outline-none"
                 />
               </div>

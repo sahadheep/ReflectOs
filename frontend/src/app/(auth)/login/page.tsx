@@ -42,7 +42,7 @@ export default function LoginPage() {
         body: JSON.stringify({ username, password }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to login");
+      if (!res.ok) throw new Error(data.message || data.detail || "Failed to login");
 
       login({
         id: data.id,
