@@ -29,6 +29,24 @@ public class DiaryController {
         return ResponseEntity.ok(diaryService.getOrCreateEntry(user, date));
     }
 
+    @GetMapping("/daily")
+    public ResponseEntity<DiaryEntry> getDailyEntry(
+            @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        User user = diaryService.getCurrentUser();
+        return ResponseEntity.ok(diaryService.getOrCreateEntry(user, date));
+    }
+
+    @PostMapping("/daily")
+    public ResponseEntity<DiaryEntry> saveDailyDraft(@RequestBody DiaryRequest request) {
+        User user = diaryService.getCurrentUser();
+        LocalDate date = request.getDate() != null ? request.getDate() : LocalDate.now();
+        String content = request.getContent() != null ? request.getContent() : request.getText();
+        DiaryRequest updatedRequest = new DiaryRequest();
+        updatedRequest.setMood(request.getMood());
+        updatedRequest.setContent(content);
+        return ResponseEntity.ok(diaryService.saveDraft(user, date, updatedRequest));
+    }
+
     @GetMapping("/history")
     public ResponseEntity<List<DiaryEntry>> getDiaryHistory() {
         User user = diaryService.getCurrentUser();

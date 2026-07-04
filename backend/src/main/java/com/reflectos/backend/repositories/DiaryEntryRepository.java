@@ -12,5 +12,6 @@ import java.util.Optional;
 @Repository
 public interface DiaryEntryRepository extends JpaRepository<DiaryEntry, Long> {
     Optional<DiaryEntry> findByUserAndDate(User user, LocalDate date);
+    List<DiaryEntry> findByUserAndDateBetween(User user, LocalDate startDate, LocalDate endDate);
     List<DiaryEntry> findByUserOrderByDateDesc(User user);
 }

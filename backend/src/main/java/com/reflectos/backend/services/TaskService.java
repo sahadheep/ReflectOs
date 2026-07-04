@@ -58,8 +58,8 @@ public class TaskService {
                 user,
                 request.getTitle(),
                 request.getDescription(),
-                request.getPriority(),
-                request.getCategory(),
+                request.getPriority() == null || request.getPriority().isBlank() ? "medium" : request.getPriority(),
+                request.getCategory() == null || request.getCategory().isBlank() ? "General" : request.getCategory(),
                 request.getTargetDate()
         );
         return taskRepository.save(task);
@@ -69,10 +69,21 @@ public class TaskService {
     @Transactional
     public Task updateTask(User user, Long taskId, TaskRequest request) {
         Task task = findOwnedTask(user, taskId);
-        task.setTitle(request.getTitle());
-        task.setDescription(request.getDescription());
-        task.setPriority(request.getPriority());
-        task.setCategory(request.getCategory());
+        if (request.getTitle() != null && !request.getTitle().isBlank()) {
+            task.setTitle(request.getTitle());
+        }
+        if (request.getDescription() != null) {
+            task.setDescription(request.getDescription());
+        }
+        if (request.getPriority() != null && !request.getPriority().isBlank()) {
+            task.setPriority(request.getPriority());
+        }
+        if (request.getCategory() != null && !request.getCategory().isBlank()) {
+            task.setCategory(request.getCategory());
+        }
+        if (request.getTargetDate() != null) {
+            task.setTargetDate(request.getTargetDate());
+        }
         return taskRepository.save(task);
     }
 
@@ -90,6 +101,27 @@ public class TaskService {
     public Task togglePriority(User user, Long taskId) {
         Task task = findOwnedTask(user, taskId);
         task.setTopPriority(!task.isTopPriority());
+        return taskRepository.save(task);
+    }
+
+    /** Partially updates an existing task dynamically. */
+    @Transactional
+    public Task patchTask(User user, Long taskId, java.util.Map<String, Object> updates) {
+        Task task = findOwnedTask(user, taskId);
+        if (updates.containsKey("completed")) {
+            boolean completed = (boolean) updates.get("completed");
+            task.setCompleted(completed);
+            task.setCompletedAt(completed ? LocalDateTime.now() : null);
+        }
+        if (updates.containsKey("title")) {
+            task.setTitle((String) updates.get("title"));
+        }
+        if (updates.containsKey("priority")) {
+            task.setPriority((String) updates.get("priority"));
+        }
+        if (updates.containsKey("category")) {
+            task.setCategory((String) updates.get("category"));
+        }
         return taskRepository.save(task);
     }
 

@@ -24,13 +24,10 @@ public class Task {
 
     private String description;
 
-    @NotBlank
-    private String priority; // Low, Medium, High
+    private String priority = "medium"; // Low, Medium, High
 
-    @NotBlank
-    private String category; // DSA, College, Work, Fitness, etc.
+    private String category = "General"; // DSA, College, Work, Fitness, etc.
 
-    @NotNull
     private LocalDate targetDate; // The date this task belongs to
 
     private boolean completed;
@@ -50,8 +47,8 @@ public class Task {
         this.user = user;
         this.title = title;
         this.description = description;
-        this.priority = priority;
-        this.category = category;
+        this.priority = priority == null || priority.isBlank() ? "medium" : priority;
+        this.category = category == null || category.isBlank() ? "General" : category;
         this.targetDate = targetDate;
         this.completed = false;
         this.createdAt = LocalDateTime.now();

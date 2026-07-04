@@ -11,5 +11,6 @@ import java.util.List;
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long> {
     List<Task> findByUserAndTargetDateOrderByCreatedAtAsc(User user, LocalDate targetDate);
+    List<Task> findByUserAndTargetDateBetween(User user, LocalDate startDate, LocalDate endDate);
     List<Task> findByUserOrderByTargetDateDesc(User user);
 }

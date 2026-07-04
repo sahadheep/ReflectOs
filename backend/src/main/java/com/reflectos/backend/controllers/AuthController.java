@@ -77,7 +77,7 @@ public class AuthController {
     @PostMapping("/dev-login")
     public ResponseEntity<?> devLogin() {
         if (!devModeAuth) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: Dev mode auth is disabled."));
+            return ResponseEntity.notFound().build();
         }
 
         String devEmail = "dev@reflectos.com";

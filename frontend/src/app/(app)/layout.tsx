@@ -1,9 +1,11 @@
 "use client";
 
 import { useAuth } from "@/context/AuthContext";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Sidebar } from "@/components/sidebar";
+import { Topbar } from "@/components/topbar";
+import { CommandPalette } from "@/components/command-palette";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, loading, logout, user } = useAuth();
@@ -17,6 +19,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger shortcuts if typing in an input
       if (
         document.activeElement?.tagName === "INPUT" ||
         document.activeElement?.tagName === "TEXTAREA" ||
@@ -30,15 +33,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
       switch (e.key.toLowerCase()) {
         case "n":
-          e.preventDefault();
-          router.push("/dashboard?new=true");
+          if (e.metaKey || e.ctrlKey) {
+            e.preventDefault();
+            // TODO: Open quick-add slide-over
+          }
           break;
-        case "d":
-          e.preventDefault();
-          router.push("/diary");
-          break;
-        case "/":
-          e.preventDefault();
+        case "k":
+          if (e.metaKey || e.ctrlKey) {
+            e.preventDefault();
+            // TODO: Open command palette
+          }
           break;
       }
     };
@@ -49,24 +53,34 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   if (loading || !isAuthenticated) {
     return (
-      <div className="flex h-screen items-center justify-center bg-background">
+      <div className="flex h-screen items-center justify-center bg-bg-base">
         <div className="text-center">
-          <div className="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center mx-auto mb-4">
-            <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-          </div>
-          <p className="text-muted-foreground">Loading...</p>
+          <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-text-secondary text-sm">Loading workspace...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
-      {/* Premium Sidebar (Fixed) */}
-      <Sidebar user={user} onLogout={logout} />
+    <div className="flex h-screen bg-bg-base overflow-hidden">
+      {/* Sidebar (Desktop) / Bottom Tabs (Mobile) */}
+      <Sidebar />
 
-      {/* Main content */}
-      <main className="flex-1 overflow-y-auto">{children}</main>
+      {/* Main content column */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Top bar (Search, Avatar) */}
+        <Topbar user={user} onLogout={logout} />
+        
+        {/* Scrollable page content */}
+        <main className="flex-1 overflow-y-auto relative z-0">
+          <div className="max-w-[1100px] mx-auto w-full p-6 md:p-8">
+            {children}
+          </div>
+        </main>
+      </div>
+
+      <CommandPalette />
     </div>
   );
 }

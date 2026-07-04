@@ -24,6 +24,18 @@ public class TaskController {
         this.taskService = taskService;
     }
 
+    @GetMapping
+    public ResponseEntity<List<Task>> getAllTasks() {
+        User user = taskService.getCurrentUser();
+        return ResponseEntity.ok(taskService.getTaskHistory(user));
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<Task> patchTask(@PathVariable Long id, @RequestBody java.util.Map<String, Object> updates) {
+        User user = taskService.getCurrentUser();
+        return ResponseEntity.ok(taskService.patchTask(user, id, updates));
+    }
+
     @GetMapping("/daily")
     public ResponseEntity<List<Task>> getDailyTasks(
             @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {

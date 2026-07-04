@@ -1,23 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { API_URL } from "@/lib/api";
+import { motion, AnimatePresence } from "framer-motion";
+
+const quotes = [
+  "Clarity comes from engagement, not thought.",
+  "What gets measured gets managed.",
+  "Focus is not saying yes to all important things, rather it is saying no to less important things.",
+];
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [quoteIndex, setQuoteIndex] = useState(0);
   
   const { login } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setQuoteIndex((prev) => (prev + 1) % quotes.length);
+    }, 8000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,17 +38,11 @@ export default function LoginPage() {
     try {
       const res = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
-
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || "Failed to login");
-      }
+      if (!res.ok) throw new Error(data.message || "Failed to login");
 
       login({
         id: data.id,
@@ -45,7 +50,6 @@ export default function LoginPage() {
         email: data.email,
         token: data.accessToken,
       });
-
     } catch (err: any) {
       setError(err.message || "An error occurred");
     } finally {
@@ -54,60 +58,109 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold tracking-tight text-center">
-            Welcome back
-          </CardTitle>
-          <CardDescription className="text-center">
-            Enter your credentials to access your account
-          </CardDescription>
-        </CardHeader>
-        <form onSubmit={handleLogin}>
-          <CardContent className="space-y-4">
+    <div className="min-h-screen flex flex-col md:flex-row bg-bg-base">
+      {/* Branding Panel (45% left, hidden on mobile) */}
+      <div className="hidden md:flex w-[45%] bg-[#0B0D10] relative overflow-hidden p-12 flex-col justify-between border-r border-border-subtle">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-accent/10 via-transparent to-transparent opacity-60"></div>
+        
+        <div className="relative z-10 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-md bg-accent text-bg-base flex items-center justify-center font-bold text-xl leading-none">
+            R
+          </div>
+          <span className="font-semibold text-text-primary text-xl tracking-tight">
+            ReflectOS
+          </span>
+        </div>
+
+        <div className="relative z-10 max-w-sm">
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={quoteIndex}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.5 }}
+              className="text-2xl font-serif text-text-primary leading-tight"
+            >
+              "{quotes[quoteIndex]}"
+            </motion.p>
+          </AnimatePresence>
+        </div>
+      </div>
+
+      {/* Form Panel (55% right, full width on mobile) */}
+      <div className="flex-1 flex items-center justify-center p-8 bg-bg-surface-raised">
+        <div className="w-full max-w-sm space-y-8">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-semibold text-text-primary tracking-tight">Welcome back</h1>
+            <p className="text-text-secondary text-sm">Enter your credentials to continue</p>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div className="space-y-4">
+              {/* Input Group: Bottom Border Only */}
+              <div className="relative">
+                <input
+                  id="username"
+                  type="text"
+                  placeholder="Username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                  className="w-full bg-transparent border-0 border-b border-border-default px-0 py-3 text-text-primary placeholder:text-text-tertiary focus:ring-0 focus:border-accent transition-colors outline-none"
+                />
+              </div>
+              
+              <div className="relative">
+                <input
+                  id="password"
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full bg-transparent border-0 border-b border-border-default px-0 py-3 text-text-primary placeholder:text-text-tertiary focus:ring-0 focus:border-accent transition-colors outline-none"
+                />
+              </div>
+            </div>
+
             {error && (
-              <div className="p-3 text-sm text-red-500 bg-red-50 dark:bg-red-900/10 rounded-md">
+              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm text-danger flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-danger"></span>
                 {error}
-              </div>
+              </motion.p>
             )}
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                type="text"
-                placeholder="johndoe"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-              />
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-accent text-bg-base py-3 rounded-md font-medium hover:bg-accent-hover transition-colors focus-visible:shadow-focus disabled:opacity-70 flex justify-center"
+            >
+              {isLoading ? <span className="w-5 h-5 border-2 border-bg-base border-t-transparent rounded-full animate-spin"></span> : "Sign in"}
+            </button>
+          </form>
+
+          <div className="text-center text-sm text-text-secondary">
+            Don't have an account?{" "}
+            <Link href="/register" className="text-accent hover:text-accent-hover font-medium">
+              Create one
+            </Link>
+          </div>
+
+          {/* Optional Dev Mode trigger if enabled */}
+          {process.env.NODE_ENV === "development" && (
+            <div className="pt-6 mt-6 border-t border-border-subtle text-center">
+              <button 
+                type="button" 
+                className="text-xs text-text-tertiary hover:text-text-primary transition-colors"
+                onClick={() => { setUsername("johndoe"); setPassword("password"); }}
+              >
+                Fill demo credentials
+              </button>
             </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-              </div>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Signing in..." : "Sign in"}
-            </Button>
-            <div className="text-sm text-center text-gray-500 dark:text-gray-400">
-              Don&apos;t have an account?{" "}
-              <Link href="/register" className="font-semibold text-primary hover:underline">
-                Sign up
-              </Link>
-            </div>
-          </CardFooter>
-        </form>
-      </Card>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

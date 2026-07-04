@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
+import jakarta.annotation.PostConstruct;
 
 @Component
 public class JwtUtils {
@@ -19,6 +20,14 @@ public class JwtUtils {
 
     @Value("${jwt.expirationMs}")
     private int jwtExpirationMs;
+
+    @PostConstruct
+    public void validateSecret() {
+        byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
+        if (keyBytes.length < 32) {
+            throw new IllegalArgumentException("JWT secret must be at least 256 bits (32 bytes) long.");
+        }
+    }
 
     public String generateJwtToken(Authentication authentication) {
         UserDetails userPrincipal = (UserDetails) authentication.getPrincipal();

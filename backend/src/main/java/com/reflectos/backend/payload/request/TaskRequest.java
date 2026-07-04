@@ -10,13 +10,10 @@ public class TaskRequest {
 
     private String description;
 
-    @NotBlank
     private String priority;
 
-    @NotBlank
     private String category;
 
-    @NotNull
     private LocalDate targetDate;
 
     public String getTitle() {

@@ -6,7 +6,7 @@ services:
     container_name: reflectos_db
     environment:
       POSTGRES_USER: reflectos_user
-      POSTGRES_PASSWORD: reflectos_password
+      POSTGRES_PASSWORD: reflectos_secure_pass_123!
       POSTGRES_DB: reflectos_db
     ports:
       - "5432:5432"
