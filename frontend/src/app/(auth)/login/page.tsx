@@ -48,7 +48,7 @@ export default function LoginPage() {
         id: data.id,
         username: data.username,
         email: data.email,
-        token: data.accessToken,
+        token: data.token,
       });
     } catch (err: any) {
       setError(err.message || "An error occurred");

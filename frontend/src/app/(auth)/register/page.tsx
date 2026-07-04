@@ -57,12 +57,12 @@ export default function RegisterPage() {
       });
       const loginData = await loginRes.json();
       
-      if (loginRes.ok && loginData.accessToken) {
+      if (loginRes.ok && loginData.token) {
         login({
           id: loginData.id,
           username: loginData.username,
           email: loginData.email,
-          token: loginData.accessToken,
+          token: loginData.token,
         });
       } else {
         // Fallback: send them to login page
