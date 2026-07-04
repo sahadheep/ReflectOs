@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const parsed: User = JSON.parse(stored);
         // Basic sanity check — if the token is missing, discard.
         if (parsed?.token) {
-          setUser(parsed);
+          setTimeout(() => setUser(parsed), 0);
         } else {
           localStorage.removeItem(STORAGE_KEY);
         }

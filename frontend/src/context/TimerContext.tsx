@@ -73,38 +73,6 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
     refetchOnWindowFocus: true,
   });
 
-  // Visual-only tick interval
-  useEffect(() => {
-    if (!activeSession) {
-      setDisplaySeconds(0);
-      return;
-    }
-
-    // Initial calculation
-    setDisplaySeconds(calculateElapsed(activeSession));
-
-    if (activeSession.status !== 'RUNNING') {
-      return;
-    }
-
-    const interval = setInterval(() => {
-      setDisplaySeconds(calculateElapsed(activeSession));
-      
-      // Auto-complete if it's a countdown and we reached the planned duration
-      if (
-        activeSession.plannedDurationSec &&
-        activeSession.sessionType !== 'STOPWATCH'
-      ) {
-        const elapsed = calculateElapsed(activeSession);
-        if (elapsed >= activeSession.plannedDurationSec) {
-          completeMutation.mutate();
-        }
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [activeSession]);
-
   const startMutation = useMutation({
     mutationFn: async ({ type, duration, taskId }: { type: SessionType, duration: number, taskId?: number }) => {
       const res = await fetchWithAuth('/v1/timer/sessions', {
@@ -150,7 +118,6 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
       queryClient.invalidateQueries({ queryKey: ['timerStats'] });
       queryClient.invalidateQueries({ queryKey: ['weeklyReview'] });
       toast.success('Session completed!');
-      // Play sound here if enabled via preferences
     },
   });
 
@@ -163,6 +130,43 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
     },
     onSuccess: () => queryClient.setQueryData(['activeSession'], null),
   });
+
+  // Visual-only tick interval
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
+    if (!activeSession) {
+      timeoutId = setTimeout(() => setDisplaySeconds(0), 0);
+      return () => clearTimeout(timeoutId);
+    }
+
+    // Initial calculation
+    timeoutId = setTimeout(() => setDisplaySeconds(calculateElapsed(activeSession)), 0);
+
+    if (activeSession.status !== 'RUNNING') {
+      return () => clearTimeout(timeoutId);
+    }
+
+    const interval = setInterval(() => {
+      setDisplaySeconds(calculateElapsed(activeSession));
+      
+      // Auto-complete if it's a countdown and we reached the planned duration
+      if (
+        activeSession.plannedDurationSec &&
+        activeSession.sessionType !== 'STOPWATCH'
+      ) {
+        const elapsed = calculateElapsed(activeSession);
+        if (elapsed >= activeSession.plannedDurationSec) {
+          completeMutation.mutate();
+        }
+      }
+    }, 1000);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeoutId);
+    };
+  }, [activeSession, completeMutation]);
 
   return (
     <TimerContext.Provider

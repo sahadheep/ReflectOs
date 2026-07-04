@@ -24,7 +24,7 @@ export function TaskTimer({ task, onStop }: TaskTimerProps) {
     if (task.completed) {
       const end = task.completedAt ? parseISO(task.completedAt) : new Date();
       const diffMs = end.getTime() - start.getTime();
-      setElapsed(formatDurationMs(diffMs));
+      setTimeout(() => setElapsed(formatDurationMs(diffMs)), 0);
       return;
     }
 
