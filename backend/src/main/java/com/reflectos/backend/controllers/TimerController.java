@@ -115,8 +115,7 @@ public class TimerController {
     }
 
     /**
-     * Aggregated timer stats: total focus seconds, session count,
-     * and current streak (consecutive days with ≥1 completed focus session).
+     * Aggregated timer stats: total focus seconds, session count.
      */
     @GetMapping("/stats")
     @org.springframework.cache.annotation.Cacheable(value = "timerStats", key = "#user.id + '-' + #range", condition = "#range != 'today'")
@@ -156,10 +155,7 @@ public class TimerController {
                         && s.getStatus() == FocusSession.SessionStatus.COMPLETED)
                 .count();
 
-        // Streak: count consecutive days going backward from today
-        int streak = calculateStreak(user, now);
-
-        return ResponseEntity.ok(new TimerStatsResponse(totalFocusSeconds, sessionCount, streak));
+        return ResponseEntity.ok(new TimerStatsResponse(totalFocusSeconds, sessionCount));
     }
 
     // ─── Preferences ─────────────────────────────────────────────
@@ -187,26 +183,5 @@ public class TimerController {
 
     // ─── Internals ───────────────────────────────────────────────
 
-    private int calculateStreak(User user, ZonedDateTime now) {
-        int streak = 0;
-        LocalDate day = now.toLocalDate();
 
-        for (int i = 0; i < 365; i++) {
-            ZonedDateTime dayStart = day.atStartOfDay(now.getZone());
-            ZonedDateTime dayEnd = day.plusDays(1).atStartOfDay(now.getZone());
-
-            List<FocusSession> daySessions = focusSessionRepository.findByUserAndDateRange(user, dayStart, dayEnd);
-            boolean hasCompleted = daySessions.stream()
-                    .anyMatch(s -> s.getSessionType() == FocusSession.SessionType.FOCUS
-                            && s.getStatus() == FocusSession.SessionStatus.COMPLETED);
-
-            if (hasCompleted) {
-                streak++;
-                day = day.minusDays(1);
-            } else {
-                break;
-            }
-        }
-        return streak;
-    }
 }

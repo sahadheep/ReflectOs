@@ -39,7 +39,7 @@ class DiaryServiceTest {
     void setUp() {
         testUser = new User("testuser", "test@test.com", "password");
         testUser.setId(1L);
-        testUser.setStreak(5);
+
         today = LocalDate.now();
     }
 
@@ -102,7 +102,7 @@ class DiaryServiceTest {
     }
 
     @Test
-    void submitDiary_WhenValid_LocksAndIncrementsStreak() {
+    void submitDiary_WhenValid_LocksEntry() {
         DiaryEntry entry = new DiaryEntry(testUser, today);
         when(diaryEntryRepository.findByUserAndDate(testUser, today))
                 .thenReturn(Optional.of(entry));
@@ -117,8 +117,7 @@ class DiaryServiceTest {
         assertTrue(result.isLocked());
         assertEquals("Final content", result.getContentSubmitted());
         
-        // Streak should be incremented from 5 to 6
-        assertEquals(6, testUser.getStreak());
+
         verify(userRepository).save(testUser);
     }
 

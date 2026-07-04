@@ -97,8 +97,6 @@ export default function DashboardPage() {
   const completedTasks = tasks.filter(t => t.completed);
   const activeTasks = tasks.filter(t => !t.completed);
   
-  // Hardcoded streak for now since backend doesn't track it explicitly yet
-  const streak = 3; 
 
   const chartData = weeklyStats.map(stat => ({
     day: format(parseISO(stat.date), "EEE"),
@@ -113,7 +111,7 @@ export default function DashboardPage() {
           {format(new Date(), "EEEE, MMMM d")}
         </h1>
         <p className="text-text-secondary text-lg">
-          {streak > 0 ? `Day ${streak} — keep it going.` : "Ready to focus?"}
+          Ready to focus?
         </p>
       </header>
 
@@ -214,11 +212,6 @@ export default function DashboardPage() {
           <div className="card-editorial p-6 space-y-6">
             <h2 className="text-sm font-medium text-text-secondary">This week</h2>
             
-            <div className="flex items-end gap-2">
-              <Flame size={28} className="text-warning mb-1" strokeWidth={2} />
-              <div className="text-3xl font-semibold text-text-primary leading-none">{streak}</div>
-              <div className="text-sm text-text-tertiary mb-1 font-medium">day streak</div>
-            </div>
 
             <div className="h-[120px] w-full pt-4 border-t border-border-subtle mt-6">
               <ResponsiveContainer width="100%" height="100%">

@@ -32,7 +32,6 @@ public class User {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    private int streak;
 
     public User() {
     }
@@ -42,7 +41,7 @@ public class User {
         this.email = email;
         this.password = password;
         this.createdAt = LocalDateTime.now();
-        this.streak = 0;
+
     }
 
     public Long getId() {
@@ -85,11 +84,5 @@ public class User {
         this.createdAt = createdAt;
     }
 
-    public int getStreak() {
-        return streak;
-    }
 
-    public void setStreak(int streak) {
-        this.streak = streak;
-    }
 }

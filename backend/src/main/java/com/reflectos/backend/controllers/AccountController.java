@@ -42,8 +42,7 @@ public class AccountController {
         Map<String, Object> exportData = Map.of(
                 "user", Map.of(
                         "username", user.getUsername(),
-                        "email", user.getEmail(),
-                        "streak", user.getStreak()
+                        "email", user.getEmail()
                 ),
                 "tasks", taskService.getTaskHistory(user),
                 "diary", diaryService.getHistory(user)

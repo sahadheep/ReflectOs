@@ -185,14 +185,6 @@ export default function AnalyticsPage() {
               </div>
             </div>
 
-            <div className="bg-bg-surface border border-border-subtle p-5 rounded-xl flex flex-col justify-between col-span-2 md:col-span-1">
-              <div className="text-warning mb-4"><Flame size={18} /></div>
-              <div>
-                <p className="text-2xl font-semibold text-text-primary">5</p>
-                <p className="text-xs text-text-secondary mt-1">Day Streak (Best)</p>
-              </div>
-            </div>
-
           </div>
         </section>
 

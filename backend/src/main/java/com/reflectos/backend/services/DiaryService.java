@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * Service layer for Diary operations.
  * Handles daily entry creation, draft saving, final submission,
- * and streak tracking.
+ * Provides operations to create, read, update, and search diary entries.
  */
 @Service
 public class DiaryService {
@@ -74,7 +74,7 @@ public class DiaryService {
 
     /**
      * Finalises and locks the diary entry for the given date.
-     * Also increments the user's streak counter.
+     *
      * @throws ResourceNotFoundException if no diary entry exists for the date.
      * @throws IllegalStateException     if the entry is already locked.
      */
@@ -91,8 +91,6 @@ public class DiaryService {
         entry.setContentSubmitted(request.getContent());
         entry.setLocked(true);
 
-        // Update streak
-        user.setStreak(user.getStreak() + 1);
         userRepository.save(user);
 
         return diaryEntryRepository.save(entry);
