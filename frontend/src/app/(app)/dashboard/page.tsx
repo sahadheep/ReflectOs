@@ -154,7 +154,7 @@ export default function DashboardPage() {
                   >
                     <button 
                       onClick={() => toggleTask(task.id, task.completed)}
-                      className="text-border-default hover:text-accent transition-colors"
+                      className="text-border-default hover:text-accent transition-all active:scale-90"
                     >
                       <Circle size={18} strokeWidth={2} />
                     </button>
@@ -172,7 +172,7 @@ export default function DashboardPage() {
                 <div className="pt-4 border-t border-border-subtle">
                   <button 
                     onClick={() => setShowCompleted(!showCompleted)}
-                    className="flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary transition-colors"
+                    className="flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary transition-all active:scale-[0.98]"
                   >
                     {showCompleted ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                     {completedTasks.length} completed
@@ -190,7 +190,7 @@ export default function DashboardPage() {
                           <div key={task.id} className="flex items-center gap-3 py-2 opacity-50">
                             <button 
                               onClick={() => toggleTask(task.id, task.completed)}
-                              className="text-text-tertiary hover:text-text-primary transition-colors"
+                              className="text-text-tertiary hover:text-text-primary transition-all active:scale-90"
                             >
                               <CheckCircle2 size={18} strokeWidth={2} />
                             </button>

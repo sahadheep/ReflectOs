@@ -100,7 +100,7 @@ export function Sidebar() {
                 )}
                 
                 <div
-                  className={`flex items-center gap-3 px-2 py-1.5 mx-2 rounded-md transition-colors duration-150 ${
+                  className={`flex items-center gap-3 px-2 py-1.5 mx-2 rounded-md transition-all duration-150 active:scale-[0.98] ${
                     isActive 
                       ? "bg-bg-surface-raised text-text-primary" 
                       : "text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover"
@@ -137,10 +137,10 @@ export function Sidebar() {
                   />
                 )}
                 <div
-                  className={`flex items-center gap-3 px-2 py-1.5 mx-2 rounded-md transition-colors duration-150 ${
+                  className={`flex items-center gap-3 px-2 py-1.5 mx-2 rounded-md transition-all duration-150 active:scale-[0.98] ${
                     isActive 
-                      ? "bg-bg-surface-raised text-text-primary" 
-                      : "text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover"
+                      ? "bg-bg-surface-raised text-text-primary shadow-sm" 
+                      : "text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover hover:-translate-y-px"
                   } focus-visible:shadow-focus`}
                   title={isCollapsed ? category : undefined}
                 >
@@ -178,7 +178,7 @@ export function Sidebar() {
                   />
                 )}
                 <div
-                  className={`flex items-center gap-3 px-2 py-1.5 mx-2 rounded-md transition-colors duration-150 ${
+                  className={`flex items-center gap-3 px-2 py-1.5 mx-2 rounded-md transition-all duration-150 active:scale-[0.98] ${
                     isActive 
                       ? "bg-bg-surface-raised text-text-primary" 
                       : "text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover"
@@ -201,7 +201,7 @@ export function Sidebar() {
         <div className="p-2 shrink-0 border-t border-border-subtle">
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="w-full flex items-center justify-center p-2 text-text-tertiary hover:text-text-primary hover:bg-bg-surface-hover rounded-md transition-colors focus-visible:outline-none focus-visible:shadow-focus"
+            className="w-full flex items-center justify-center p-2 text-text-tertiary hover:text-text-primary hover:bg-bg-surface-hover rounded-md transition-all active:scale-95 focus-visible:outline-none focus-visible:shadow-focus"
             title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
             {isCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}

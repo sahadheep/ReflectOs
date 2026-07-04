@@ -158,7 +158,7 @@ export default function TasksPage({ params }: { params: Promise<{ filter?: strin
               {newTaskTitle.trim() && (
                 <button 
                   type="submit"
-                  className="shrink-0 bg-blue-500 text-white px-3 py-1 rounded text-xs font-medium hover:bg-blue-600 transition-colors"
+                  className="shrink-0 bg-blue-500 text-white px-3 py-1 rounded text-xs font-medium hover:bg-blue-600 transition-all active:scale-95 hover:shadow-sm"
                 >
                   Add Task
                 </button>
@@ -175,11 +175,11 @@ export default function TasksPage({ params }: { params: Promise<{ filter?: strin
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   key={task.id}
-                  className="group flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-bg-surface transition-colors border border-transparent hover:border-border-subtle"
+                  className="group flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-bg-surface-raised transition-all duration-200 border border-transparent hover:border-border-subtle hover:shadow-sm hover:-translate-y-px"
                 >
                   <button 
                     onClick={() => toggleTask(task.id, task.completed)}
-                    className={`shrink-0 transition-colors ${task.completed ? "text-text-tertiary" : "text-border-default hover:text-accent"}`}
+                    className={`shrink-0 transition-all active:scale-90 ${task.completed ? "text-text-tertiary" : "text-border-default hover:text-accent"}`}
                   >
                     {task.completed ? <CheckCircle2 size={18} strokeWidth={2} /> : <Circle size={18} strokeWidth={2} />}
                   </button>
@@ -288,7 +288,7 @@ export default function TasksPage({ params }: { params: Promise<{ filter?: strin
                             e.preventDefault();
                             setNewTaskCol(null);
                           }}
-                          className="px-2 py-1 text-xs font-medium text-text-tertiary hover:text-text-primary transition-colors"
+                          className="px-2 py-1 text-xs font-medium text-text-tertiary hover:text-text-primary transition-all active:scale-95"
                         >
                           Cancel
                         </button>
@@ -296,7 +296,7 @@ export default function TasksPage({ params }: { params: Promise<{ filter?: strin
                           type="submit"
                           onMouseDown={(e) => e.preventDefault()} // Prevent blur so click registers
                           disabled={!newTaskTitle.trim()}
-                          className="px-3 py-1 bg-blue-500 text-white text-xs font-medium rounded hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-3 py-1 bg-blue-500 text-white text-xs font-medium rounded hover:bg-blue-600 transition-all active:scale-95 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
                         >
                           Add Task
                         </button>
@@ -305,7 +305,7 @@ export default function TasksPage({ params }: { params: Promise<{ filter?: strin
                   ) : (
                     <button 
                       onClick={() => { setNewTaskCol(day.dateString); setNewTaskTitle(""); }}
-                      className="w-full flex items-center justify-start gap-2 p-2 mb-2 text-sm font-medium text-text-tertiary hover:text-text-primary hover:bg-bg-surface-raised rounded-md transition-colors group border border-transparent hover:border-border-subtle"
+                      className="w-full flex items-center justify-start gap-2 p-2 mb-2 text-sm font-medium text-text-tertiary hover:text-text-primary hover:bg-bg-surface-raised rounded-md transition-all active:scale-[0.98] group border border-transparent hover:border-border-subtle hover:shadow-sm"
                     >
                       <Plus size={16} className="text-text-tertiary group-hover:text-accent transition-colors" /> Add a task
                     </button>
@@ -320,10 +320,10 @@ export default function TasksPage({ params }: { params: Promise<{ filter?: strin
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95 }}
                         key={task.id} 
-                        className="bg-bg-surface-raised border border-border-subtle hover:border-border-default p-3 rounded-md shadow-sm space-y-2 group transition-colors"
+                        className="bg-bg-surface-raised border border-border-subtle hover:border-border-default p-3 rounded-md shadow-sm space-y-2 group transition-all duration-200 hover:shadow-md hover:-translate-y-px"
                       >
                         <div className="flex items-start gap-2">
-                          <button onClick={() => toggleTask(task.id, task.completed)} className="mt-0.5 shrink-0 text-text-tertiary hover:text-accent transition-colors">
+                          <button onClick={() => toggleTask(task.id, task.completed)} className="mt-0.5 shrink-0 text-text-tertiary hover:text-accent transition-all active:scale-90">
                             <Circle size={16} strokeWidth={2} />
                           </button>
                           <p className="text-sm font-medium text-text-primary leading-tight pt-0.5">
