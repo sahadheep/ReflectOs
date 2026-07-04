@@ -146,7 +146,7 @@ export default function TasksPage({ params }: { params: Promise<{ filter?: strin
 
         <div className="space-y-3">
           {viewType !== "logbook" && (
-            <form onSubmit={(e) => handleAddTask(e, viewType === "today" ? todayDate : null, defaultCategory)} className="flex items-center gap-3 px-3 py-2 bg-bg-surface-raised border border-border-default rounded-md">
+            <form onSubmit={(e) => handleAddTask(e, viewType === "today" ? todayDate : null, defaultCategory)} className="flex items-center gap-3 px-3 py-2 bg-bg-surface-raised border border-border-default rounded-md focus-within:border-accent/50 focus-within:ring-1 focus-within:ring-accent/50 transition-all">
               <Plus size={18} className="text-border-default shrink-0" strokeWidth={2} />
               <input
                 type="text"
@@ -155,6 +155,14 @@ export default function TasksPage({ params }: { params: Promise<{ filter?: strin
                 onChange={(e) => setNewTaskTitle(e.target.value)}
                 className="flex-1 bg-transparent border-none text-sm text-text-primary placeholder:text-text-tertiary outline-none"
               />
+              {newTaskTitle.trim() && (
+                <button 
+                  type="submit"
+                  className="shrink-0 bg-blue-500 text-white px-3 py-1 rounded text-xs font-medium hover:bg-blue-600 transition-colors"
+                >
+                  Add Task
+                </button>
+              )}
             </form>
           )}
 
@@ -256,16 +264,43 @@ export default function TasksPage({ params }: { params: Promise<{ filter?: strin
                   
                   {/* Quick Add */}
                   {newTaskCol === day.dateString ? (
-                    <form onSubmit={(e) => handleAddTask(e, day.dateString)} className="bg-bg-surface border border-accent rounded-md p-2 mb-2 shadow-sm">
+                    <form 
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        handleAddTask(e, day.dateString);
+                        // Prevent blur from closing the form immediately after submit if they clicked the button
+                        // but handleAddTask resets newTaskCol to null anyway.
+                      }} 
+                      className="bg-bg-surface border border-accent rounded-md p-2 mb-2 shadow-sm space-y-2"
+                    >
                       <input
                         autoFocus
                         type="text"
                         placeholder="What are you working on?"
                         value={newTaskTitle}
                         onChange={(e) => setNewTaskTitle(e.target.value)}
-                        onBlur={() => { if(!newTaskTitle.trim()) setNewTaskCol(null) }}
                         className="w-full bg-transparent border-none text-sm text-text-primary placeholder:text-text-tertiary outline-none"
                       />
+                      <div className="flex justify-end gap-2 pt-1 border-t border-border-subtle">
+                        <button 
+                          type="button" 
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            setNewTaskCol(null);
+                          }}
+                          className="px-2 py-1 text-xs font-medium text-text-tertiary hover:text-text-primary transition-colors"
+                        >
+                          Cancel
+                        </button>
+                        <button 
+                          type="submit"
+                          onMouseDown={(e) => e.preventDefault()} // Prevent blur so click registers
+                          disabled={!newTaskTitle.trim()}
+                          className="px-3 py-1 bg-blue-500 text-white text-xs font-medium rounded hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Add Task
+                        </button>
+                      </div>
                     </form>
                   ) : (
                     <button 
